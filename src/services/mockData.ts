@@ -1,4 +1,4 @@
-import { User, Location, Reward, Achievement, PointTransaction, MembershipLevel, RoomPreference, PropertyRecommendation, GuestPersonalData, AdditionalGuest, PetRegistration, VehicleInformation, DocumentType, TravelPurpose, PetSpecies, VehicleType, Reservation, AvailableRoom } from '../types';
+import { User, Location, Reward, Achievement, PointTransaction, MembershipLevel, RoomPreference, PropertyRecommendation, GuestPersonalData, AdditionalGuest, PetRegistration, VehicleInformation, DocumentType, TravelPurpose, PetSpecies, VehicleType, Reservation, AvailableRoom, UserRegistrationType } from '../types';
 
 export const mockUser: User = {
   id: '1',
@@ -9,6 +9,8 @@ export const mockUser: User = {
   membershipLevel: 'Explorer',
   pointsBalance: 1250,
   totalPointsEarned: 2840,
+  registrationType: 'hotel-guest',
+  hasActiveReservation: true,
 };
 
 export const mockLocations: Location[] = [

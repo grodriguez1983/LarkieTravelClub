@@ -8,7 +8,11 @@ export interface User {
   pointsBalance: number;
   totalPointsEarned: number;
   avatar?: string;
+  registrationType: UserRegistrationType;
+  hasActiveReservation?: boolean;
 }
+
+export type UserRegistrationType = 'hotel-guest' | 'fb-only';
 
 export type MembershipLevel = 'Explorer' | 'Adventurer' | 'Pioneer' | 'Legend';
 

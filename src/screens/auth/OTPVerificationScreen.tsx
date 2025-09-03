@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LarkieCharacter } from '../../components/LarkieCharacter';
 import { Colors } from '../../constants/colors';
-import { NavigationProps } from '../../types';
+import { NavigationProps, UserRegistrationType } from '../../types';
 
 interface OTPVerificationScreenProps extends NavigationProps {
   route: {
@@ -22,6 +22,8 @@ interface OTPVerificationScreenProps extends NavigationProps {
         name: string;
         email: string;
         phone: string;
+        registrationType: UserRegistrationType;
+        hasExistingReservation: boolean;
       };
     };
   };

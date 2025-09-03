@@ -15,7 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LarkieCharacter } from "../../components/LarkieCharacter";
 import { Colors } from "../../constants/colors";
-import { NavigationProps } from "../../types";
+import { NavigationProps, UserRegistrationType } from "../../types";
 
 export const RegistrationScreen: React.FC<NavigationProps> = ({
   navigation,
@@ -27,6 +27,7 @@ export const RegistrationScreen: React.FC<NavigationProps> = ({
   });
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [hasExistingReservation, setHasExistingReservation] = useState(false);
+  const [registrationType, setRegistrationType] = useState<UserRegistrationType>('hotel-guest');
   const [loading, setLoading] = useState(false);
 
   const validateEmail = (email: string) => {
@@ -62,7 +63,11 @@ export const RegistrationScreen: React.FC<NavigationProps> = ({
       setLoading(false);
       navigation.navigate("OTPVerification", {
         phone: formData.phone,
-        userData: formData,
+        userData: {
+          ...formData,
+          registrationType,
+          hasExistingReservation: registrationType === 'hotel-guest' ? hasExistingReservation : false,
+        },
       });
     }, 1500);
   };
@@ -115,6 +120,74 @@ export const RegistrationScreen: React.FC<NavigationProps> = ({
             <Text style={styles.subtitle}>
               Join Larkie's Travel Club and start earning rewards!
             </Text>
+
+            {/* Registration Type Selection */}
+            <View style={styles.registrationTypeContainer}>
+              <Text style={styles.registrationTypeTitle}>I want to register for:</Text>
+              
+              <TouchableOpacity
+                style={[
+                  styles.registrationTypeOption,
+                  registrationType === 'hotel-guest' && styles.registrationTypeOptionSelected
+                ]}
+                onPress={() => setRegistrationType('hotel-guest')}
+              >
+                <View style={styles.registrationTypeContent}>
+                  <Ionicons 
+                    name="business" 
+                    size={24} 
+                    color={registrationType === 'hotel-guest' ? Colors.primary.larkieBlue : Colors.neutral.gray} 
+                  />
+                  <View style={styles.registrationTypeText}>
+                    <Text style={[
+                      styles.registrationTypeTitle,
+                      registrationType === 'hotel-guest' && styles.registrationTypeSelectedText
+                    ]}>
+                      Hotel Stay & Services
+                    </Text>
+                    <Text style={styles.registrationTypeDescription}>
+                      Full access to hotel services, rooms, and all facilities
+                    </Text>
+                  </View>
+                  {registrationType === 'hotel-guest' && (
+                    <Ionicons name="checkmark-circle" size={20} color={Colors.primary.larkieBlue} />
+                  )}
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.registrationTypeOption,
+                  registrationType === 'fb-only' && styles.registrationTypeOptionSelected
+                ]}
+                onPress={() => {
+                  setRegistrationType('fb-only');
+                  setHasExistingReservation(false);
+                }}
+              >
+                <View style={styles.registrationTypeContent}>
+                  <Ionicons 
+                    name="restaurant" 
+                    size={24} 
+                    color={registrationType === 'fb-only' ? Colors.primary.larkieBlue : Colors.neutral.gray} 
+                  />
+                  <View style={styles.registrationTypeText}>
+                    <Text style={[
+                      styles.registrationTypeTitle,
+                      registrationType === 'fb-only' && styles.registrationTypeSelectedText
+                    ]}>
+                      Restaurant & Bar Only
+                    </Text>
+                    <Text style={styles.registrationTypeDescription}>
+                      Access to restaurants, bars, and F&B rewards without hotel stay
+                    </Text>
+                  </View>
+                  {registrationType === 'fb-only' && (
+                    <Ionicons name="checkmark-circle" size={20} color={Colors.primary.larkieBlue} />
+                  )}
+                </View>
+              </TouchableOpacity>
+            </View>
 
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Full Name *</Text>
@@ -171,30 +244,32 @@ export const RegistrationScreen: React.FC<NavigationProps> = ({
               />
             </View>
 
-            <TouchableOpacity
-              style={styles.reservationToggle}
-              onPress={() => setHasExistingReservation(!hasExistingReservation)}
-            >
-              <View style={styles.checkboxContainer}>
-                <View
-                  style={[
-                    styles.checkbox,
-                    hasExistingReservation ? styles.checkboxActive : {},
-                  ]}
-                >
-                  {hasExistingReservation && (
-                    <Ionicons
-                      name="checkmark"
-                      size={16}
-                      color={Colors.neutral.white}
-                    />
-                  )}
+            {registrationType === 'hotel-guest' && (
+              <TouchableOpacity
+                style={styles.reservationToggle}
+                onPress={() => setHasExistingReservation(!hasExistingReservation)}
+              >
+                <View style={styles.checkboxContainer}>
+                  <View
+                    style={[
+                      styles.checkbox,
+                      hasExistingReservation ? styles.checkboxActive : {},
+                    ]}
+                  >
+                    {hasExistingReservation && (
+                      <Ionicons
+                        name="checkmark"
+                        size={16}
+                        color={Colors.neutral.white}
+                      />
+                    )}
+                  </View>
+                  <Text style={styles.checkboxText}>
+                    Link with existing reservation
+                  </Text>
                 </View>
-                <Text style={styles.checkboxText}>
-                  Link with existing reservation
-                </Text>
-              </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity
               style={styles.termsContainer}
@@ -404,5 +479,49 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.neutral.gray,
     textAlign: "center",
+  },
+  registrationTypeContainer: {
+    marginBottom: 24,
+  },
+  registrationTypeTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: Colors.primary.deepNavy,
+    marginBottom: 12,
+  },
+  registrationTypeOption: {
+    backgroundColor: Colors.neutral.white,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: Colors.neutral.lightGray,
+    shadowColor: Colors.primary.deepNavy,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  registrationTypeOptionSelected: {
+    borderColor: Colors.primary.larkieBlue,
+    backgroundColor: '#F8FEFF',
+  },
+  registrationTypeContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  registrationTypeText: {
+    flex: 1,
+    marginLeft: 12,
+    marginRight: 8,
+  },
+  registrationTypeSelectedText: {
+    color: Colors.primary.larkieBlue,
+  },
+  registrationTypeDescription: {
+    fontSize: 14,
+    color: Colors.neutral.gray,
+    lineHeight: 20,
+    marginTop: 4,
   },
 });

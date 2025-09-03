@@ -12,7 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { LarkieCharacter } from '../../components/LarkieCharacter';
 import { Colors, gradients } from '../../constants/colors';
-import { NavigationProps } from '../../types';
+import { NavigationProps, UserRegistrationType } from '../../types';
 import { StorageService } from '../../services/storage';
 import { mockUser, mockLocations, mockAchievements, mockPointHistory } from '../../services/mockData';
 import { useAuth } from '../../context/AuthContext';
@@ -24,6 +24,8 @@ interface WelcomeSuccessScreenProps extends NavigationProps {
         name: string;
         email: string;
         phone: string;
+        registrationType: UserRegistrationType;
+        hasExistingReservation: boolean;
       };
     };
   };
@@ -49,11 +51,23 @@ export const WelcomeSuccessScreen: React.FC<WelcomeSuccessScreenProps> = ({
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
 
-  const [importSteps, setImportSteps] = useState<ImportAnimation[]>([
-    { type: 'stays', text: 'Importing previous stays', value: '2 stays found', completed: false },
-    { type: 'points', text: 'Calculating points earned', value: '340 points imported', completed: false },
-    { type: 'profile', text: 'Setting up your profile', value: 'Profile created', completed: false },
-  ]);
+  const getImportSteps = (): ImportAnimation[] => {
+    if (userData.registrationType === 'fb-only') {
+      return [
+        { type: 'stays', text: 'Setting up dining preferences', value: 'Preferences saved', completed: false },
+        { type: 'points', text: 'Welcome bonus points', value: '100 points added', completed: false },
+        { type: 'profile', text: 'Setting up your profile', value: 'Profile created', completed: false },
+      ];
+    } else {
+      return [
+        { type: 'stays', text: 'Importing previous stays', value: userData.hasExistingReservation ? '1 reservation found' : 'Ready for booking', completed: false },
+        { type: 'points', text: 'Calculating points earned', value: '340 points imported', completed: false },
+        { type: 'profile', text: 'Setting up your profile', value: 'Profile created', completed: false },
+      ];
+    }
+  };
+
+  const [importSteps, setImportSteps] = useState<ImportAnimation[]>(getImportSteps());
 
   useEffect(() => {
     // Initial animations
@@ -125,8 +139,10 @@ export const WelcomeSuccessScreen: React.FC<WelcomeSuccessScreenProps> = ({
         email: userData.email,
         phone: userData.phone,
         memberSince: new Date(),
-        pointsBalance: 340, // Imported points
-        totalPointsEarned: 340,
+        pointsBalance: userData.registrationType === 'fb-only' ? 100 : 340, // F&B guests start with fewer points
+        totalPointsEarned: userData.registrationType === 'fb-only' ? 100 : 340,
+        registrationType: userData.registrationType,
+        hasActiveReservation: userData.hasExistingReservation,
       };
 
       // Save user data

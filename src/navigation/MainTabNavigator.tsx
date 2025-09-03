@@ -49,12 +49,11 @@ export const MainTabNavigator = () => {
   const insets = useSafeAreaInsets();
   
   // Calculate proper height and padding for Android
-  const tabBarHeight = Platform.OS === 'android' ? 70 + Math.max(insets.bottom, 10) : 60 + insets.bottom;
-  const bottomPadding = Platform.OS === 'android' ? Math.max(insets.bottom + 5, 15) : insets.bottom + 5;
+  const tabBarHeight = Platform.OS === 'android' ? 56 : 49 + insets.bottom;
+  const bottomPadding = Platform.OS === 'android' ? 5 : insets.bottom;
 
   return (
-    <View style={{ flex: 1, paddingBottom: Platform.OS === 'android' ? tabBarHeight : 0 }}>
-      <Tab.Navigator
+    <Tab.Navigator
         screenOptions={({ route }) => ({
         headerShown: false,
         tabBarIcon: ({ focused, color, size }) => {
@@ -98,10 +97,6 @@ export const MainTabNavigator = () => {
           shadowOffset: { width: 0, height: -2 },
           shadowOpacity: 0.1,
           shadowRadius: 6,
-          position: Platform.OS === 'android' ? 'absolute' : 'relative',
-          bottom: Platform.OS === 'android' ? 0 : undefined,
-          left: Platform.OS === 'android' ? 0 : undefined,
-          right: Platform.OS === 'android' ? 0 : undefined,
         },
         tabBarLabelStyle: {
           fontSize: 12,
@@ -125,8 +120,7 @@ export const MainTabNavigator = () => {
       />
       <Tab.Screen name="Rewards" component={RewardsScreen} />
       <Tab.Screen name="Profile" component={ProfileStack} />
-      </Tab.Navigator>
-    </View>
+    </Tab.Navigator>
   );
 };
 

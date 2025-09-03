@@ -10,6 +10,7 @@ import { MapScreen } from '../screens/main/MapScreen';
 import { ScannerScreen } from '../screens/main/ScannerScreen';
 import { RewardsScreen } from '../screens/main/RewardsScreen';
 import { ProfileScreen } from '../screens/main/ProfileScreen';
+import { EditProfileScreen } from '../screens/main/EditProfileScreen';
 import { ComprehensivePreCheckInScreen } from '../screens/main/ComprehensivePreCheckInScreen';
 import { NotificationsScreen } from '../screens/main/NotificationsScreen';
 import { Colors } from '../constants/colors';
@@ -34,6 +35,13 @@ const ScannerStack = () => (
         presentation: 'modal',
       }}
     />
+  </Stack.Navigator>
+);
+
+const ProfileStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="ProfileMain" component={ProfileScreen} />
+    <Stack.Screen name="EditProfile" component={EditProfileScreen} />
   </Stack.Navigator>
 );
 
@@ -116,7 +124,7 @@ export const MainTabNavigator = () => {
         }}
       />
       <Tab.Screen name="Rewards" component={RewardsScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="Profile" component={ProfileStack} />
       </Tab.Navigator>
     </View>
   );

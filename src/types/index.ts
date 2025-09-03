@@ -10,6 +10,16 @@ export interface User {
   avatar?: string;
   registrationType: UserRegistrationType;
   hasActiveReservation?: boolean;
+  occupation?: string;
+  nationality?: string;
+  dateOfBirth?: string;
+  address?: {
+    street: string;
+    city: string;
+    state: string;
+    country: string;
+    zipCode: string;
+  };
 }
 
 export type UserRegistrationType = 'hotel-guest' | 'fb-only';

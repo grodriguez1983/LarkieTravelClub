@@ -113,12 +113,7 @@ export const ProfileScreen: React.FC<NavigationProps> = ({ navigation }) => {
   };
 
   const handleEditProfile = () => {
-    // In a real app, this would navigate to an edit profile screen
-    Alert.alert(
-      'Edit Profile',
-      'Profile editing feature would be implemented here.',
-      [{ text: 'OK' }]
-    );
+    navigation.navigate('EditProfile');
   };
 
   const handleSignOut = () => {

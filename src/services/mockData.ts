@@ -11,6 +11,16 @@ export const mockUser: User = {
   totalPointsEarned: 2840,
   registrationType: 'hotel-guest',
   hasActiveReservation: true,
+  occupation: 'Software Engineer',
+  nationality: 'American',
+  dateOfBirth: '03/15/1988',
+  address: {
+    street: '123 Main Street',
+    city: 'San Francisco',
+    state: 'CA',
+    country: 'United States',
+    zipCode: '94102',
+  },
 };
 
 export const mockLocations: Location[] = [
@@ -916,5 +926,49 @@ export const deleteNotification = async (notificationId: string): Promise<void> 
       }
       resolve();
     }, 200);
+  });
+};
+
+// Profile Update Function
+export const updateUserProfile = async (profileData: {
+  name: string;
+  email: string;
+  phone: string;
+  occupation?: string;
+  nationality?: string;
+  dateOfBirth?: string;
+  address?: {
+    street: string;
+    city: string;
+    state: string;
+    country: string;
+    zipCode: string;
+  };
+}): Promise<User> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Update the mockUser with new data
+      const updatedUser: User = {
+        ...mockUser,
+        name: profileData.name,
+        email: profileData.email,
+        phone: profileData.phone,
+        occupation: profileData.occupation || mockUser.occupation,
+        nationality: profileData.nationality || mockUser.nationality,
+        dateOfBirth: profileData.dateOfBirth || mockUser.dateOfBirth,
+        address: profileData.address ? {
+          street: profileData.address.street,
+          city: profileData.address.city,
+          state: profileData.address.state,
+          country: profileData.address.country,
+          zipCode: profileData.address.zipCode,
+        } : mockUser.address,
+      };
+      
+      // Update the global mockUser object
+      Object.assign(mockUser, updatedUser);
+      
+      resolve(updatedUser);
+    }, 1000); // Simulate network delay
   });
 };

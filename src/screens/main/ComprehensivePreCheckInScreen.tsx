@@ -18,7 +18,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { LarkieCharacter } from "../../components/LarkieCharacter";
 import { Colors, gradients } from "../../constants/colors";
-import { NavigationProps, PreCheckInStep, GuestPersonalData, AdditionalGuest, PetRegistration, VehicleInformation, RoomPreference } from "../../types";
+import { NavigationProps, PreCheckInStep, GuestPersonalData, AdditionalGuest, PetRegistration, VehicleInformation, RoomPreference, Reservation, AvailableRoom } from "../../types";
 import { 
   mockRoomPreferences, 
   mockPropertyRecommendations, 
@@ -36,7 +36,12 @@ import {
   getPetSpeciesOptions,
   getVehicleTypeOptions,
   simulateDocumentOCR,
-  calculatePreCheckInFees
+  calculatePreCheckInFees,
+  mockUserReservations,
+  mockAvailableRooms,
+  searchReservationByConfirmation,
+  searchReservationByNameAndDate,
+  getAvailableRoomsForDates
 } from "../../services/mockData";
 
 const { width } = Dimensions.get("window");
@@ -83,6 +88,388 @@ const StepIndicator: React.FC<{ currentStep: number; totalSteps: number }> = ({
         </View>
       ))}
     </View>
+  );
+};
+
+const ReservationCheckStep: React.FC<StepProps> = ({ onNext, data, updateData }) => {
+  const [hasReservation, setHasReservation] = useState<boolean | null>(null);
+  const [searchMethod, setSearchMethod] = useState<'confirmation' | 'name-date'>('confirmation');
+  const [confirmationNumber, setConfirmationNumber] = useState('');
+  const [guestName, setGuestName] = useState('Alex Johnson');
+  const [searchDate, setSearchDate] = useState(new Date());
+  const [foundReservations, setFoundReservations] = useState<Reservation[]>([]);
+  const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
+  const [searching, setSearching] = useState(false);
+  const [showNewBooking, setShowNewBooking] = useState(false);
+  const [newBookingDates, setNewBookingDates] = useState({
+    checkIn: new Date(),
+    checkOut: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days later
+    guests: 2
+  });
+  const [availableRooms, setAvailableRooms] = useState<AvailableRoom[]>([]);
+  const [selectedNewRoom, setSelectedNewRoom] = useState<AvailableRoom | null>(null);
+
+  const searchReservation = async () => {
+    if (!hasReservation) return;
+    
+    setSearching(true);
+    try {
+      if (searchMethod === 'confirmation') {
+        if (!confirmationNumber.trim()) {
+          Alert.alert("Error", "Please enter your confirmation number");
+          return;
+        }
+        const reservation = await searchReservationByConfirmation(confirmationNumber);
+        if (reservation) {
+          setFoundReservations([reservation]);
+          setSelectedReservation(reservation);
+        } else {
+          Alert.alert("No Reservation Found", "No reservation found with this confirmation number. Would you like to make a new booking?", [
+            { text: "Search Again", style: "cancel" },
+            { text: "New Booking", onPress: () => setShowNewBooking(true) }
+          ]);
+        }
+      } else {
+        if (!guestName.trim()) {
+          Alert.alert("Error", "Please enter guest name");
+          return;
+        }
+        const reservations = await searchReservationByNameAndDate(guestName, searchDate);
+        if (reservations.length > 0) {
+          setFoundReservations(reservations);
+          if (reservations.length === 1) {
+            setSelectedReservation(reservations[0]);
+          }
+        } else {
+          Alert.alert("No Reservations Found", "No reservations found for this name and date. Would you like to make a new booking?", [
+            { text: "Search Again", style: "cancel" },
+            { text: "New Booking", onPress: () => setShowNewBooking(true) }
+          ]);
+        }
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to search reservations. Please try again.");
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const searchAvailableRooms = async () => {
+    setSearching(true);
+    try {
+      const rooms = await getAvailableRoomsForDates(
+        newBookingDates.checkIn,
+        newBookingDates.checkOut,
+        newBookingDates.guests
+      );
+      setAvailableRooms(rooms);
+    } catch (error) {
+      Alert.alert("Error", "Failed to search available rooms. Please try again.");
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleNext = () => {
+    if (hasReservation && selectedReservation) {
+      updateData({
+        existingReservation: selectedReservation,
+        selectedRoom: {
+          id: selectedReservation.id,
+          type: selectedReservation.roomType,
+          name: `${selectedReservation.roomType} Room`,
+          description: `Your reserved ${selectedReservation.roomType} room`,
+          amenities: [],
+          priceRange: 'Included in reservation',
+          available: true,
+          larkieRecommendation: "Your reserved room is ready and waiting!"
+        },
+        guestCount: selectedReservation.totalGuests,
+        selectedArrivalTime: '',
+        bookingType: 'existing-reservation'
+      });
+    } else if (!hasReservation && selectedNewRoom) {
+      updateData({
+        selectedRoom: selectedNewRoom,
+        guestCount: newBookingDates.guests,
+        selectedArrivalTime: '',
+        bookingType: 'new-booking',
+        newBookingDates
+      });
+    } else {
+      Alert.alert("Selection Required", "Please select a reservation or choose a room for booking.");
+      return;
+    }
+    onNext();
+  };
+
+  return (
+    <ScrollView style={styles.stepContainer}>
+      <Text style={styles.stepTitle}>Check Reservation</Text>
+      <Text style={styles.stepSubtitle}>Do you have an existing reservation with us?</Text>
+
+      {hasReservation === null && (
+        <View style={styles.section}>
+          <TouchableOpacity
+            style={[styles.optionCard, { marginBottom: 16 }]}
+            onPress={() => setHasReservation(true)}
+          >
+            <View style={styles.optionHeader}>
+              <Ionicons name="calendar-outline" size={24} color={Colors.primary.larkieBlue} />
+              <Text style={styles.optionTitle}>Yes, I have a reservation</Text>
+              <Ionicons name="chevron-forward" size={20} color={Colors.neutral.gray} />
+            </View>
+            <Text style={styles.optionDescription}>
+              I want to check-in for my existing booking
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.optionCard}
+            onPress={() => setHasReservation(false)}
+          >
+            <View style={styles.optionHeader}>
+              <Ionicons name="add-circle-outline" size={24} color={Colors.primary.larkieBlue} />
+              <Text style={styles.optionTitle}>No, I need to book a room</Text>
+              <Ionicons name="chevron-forward" size={20} color={Colors.neutral.gray} />
+            </View>
+            <Text style={styles.optionDescription}>
+              I want to make a new reservation and check-in
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {hasReservation === true && !selectedReservation && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Find Your Reservation</Text>
+          
+          <View style={styles.searchMethodContainer}>
+            <TouchableOpacity
+              style={[styles.searchMethodButton, searchMethod === 'confirmation' && styles.searchMethodActive]}
+              onPress={() => setSearchMethod('confirmation')}
+            >
+              <Text style={[styles.searchMethodText, searchMethod === 'confirmation' && styles.searchMethodTextActive]}>
+                Confirmation Number
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.searchMethodButton, searchMethod === 'name-date' && styles.searchMethodActive]}
+              onPress={() => setSearchMethod('name-date')}
+            >
+              <Text style={[styles.searchMethodText, searchMethod === 'name-date' && styles.searchMethodTextActive]}>
+                Name & Date
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {searchMethod === 'confirmation' ? (
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Confirmation Number</Text>
+              <TextInput
+                style={styles.textInput}
+                value={confirmationNumber}
+                onChangeText={setConfirmationNumber}
+                placeholder="e.g. LTC-2024-001234"
+                autoCapitalize="characters"
+              />
+            </View>
+          ) : (
+            <>
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Guest Name</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={guestName}
+                  onChangeText={setGuestName}
+                  placeholder="Enter guest name"
+                />
+              </View>
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Check-in Date</Text>
+                <TouchableOpacity style={styles.dateInput}>
+                  <Text style={styles.dateInputText}>
+                    {searchDate.toLocaleDateString()}
+                  </Text>
+                  <Ionicons name="calendar" size={20} color={Colors.neutral.gray} />
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+
+          <TouchableOpacity
+            style={[styles.searchButton, searching && styles.searchButtonLoading]}
+            onPress={searchReservation}
+            disabled={searching}
+          >
+            <LinearGradient colors={gradients.primary} style={styles.buttonGradient}>
+              <Ionicons 
+                name={searching ? "hourglass" : "search"} 
+                size={20} 
+                color={Colors.neutral.white} 
+              />
+              <Text style={styles.buttonText}>
+                {searching ? "Searching..." : "Find Reservation"}
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          {foundReservations.length > 1 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Multiple Reservations Found</Text>
+              {foundReservations.map((reservation, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[styles.reservationCard, selectedReservation?.id === reservation.id && styles.reservationCardSelected]}
+                  onPress={() => setSelectedReservation(reservation)}
+                >
+                  <View style={styles.reservationHeader}>
+                    <Text style={styles.reservationConfirmation}>{reservation.confirmationNumber}</Text>
+                    <Text style={styles.reservationStatus}>{reservation.status}</Text>
+                  </View>
+                  <Text style={styles.reservationHotel}>{reservation.hotelName}</Text>
+                  <Text style={styles.reservationDates}>
+                    {reservation.checkInDate.toLocaleDateString()} - {reservation.checkOutDate.toLocaleDateString()}
+                  </Text>
+                  <Text style={styles.reservationDetails}>
+                    {reservation.roomType} • {reservation.totalGuests} guest{reservation.totalGuests !== 1 ? 's' : ''} • ${reservation.totalAmount}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+      )}
+
+      {hasReservation === false && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Book a New Room</Text>
+          <Text style={styles.sectionSubtitle}>Let's find you the perfect room for your stay</Text>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Check-in Date</Text>
+            <TouchableOpacity style={styles.dateInput}>
+              <Text style={styles.dateInputText}>
+                {newBookingDates.checkIn.toLocaleDateString()}
+              </Text>
+              <Ionicons name="calendar" size={20} color={Colors.neutral.gray} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Check-out Date</Text>
+            <TouchableOpacity style={styles.dateInput}>
+              <Text style={styles.dateInputText}>
+                {newBookingDates.checkOut.toLocaleDateString()}
+              </Text>
+              <Ionicons name="calendar" size={20} color={Colors.neutral.gray} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Number of Guests</Text>
+            <View style={styles.guestCountContainer}>
+              <TouchableOpacity 
+                style={styles.guestButton}
+                onPress={() => setNewBookingDates(prev => ({ 
+                  ...prev, 
+                  guests: Math.max(1, prev.guests - 1) 
+                }))}
+              >
+                <Ionicons name="remove" size={20} color={Colors.primary.deepNavy} />
+              </TouchableOpacity>
+              <Text style={styles.guestCount}>
+                {newBookingDates.guests} {newBookingDates.guests === 1 ? 'Guest' : 'Guests'}
+              </Text>
+              <TouchableOpacity 
+                style={styles.guestButton}
+                onPress={() => setNewBookingDates(prev => ({ 
+                  ...prev, 
+                  guests: Math.min(6, prev.guests + 1) 
+                }))}
+              >
+                <Ionicons name="add" size={20} color={Colors.primary.deepNavy} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.searchButton, searching && styles.searchButtonLoading]}
+            onPress={searchAvailableRooms}
+            disabled={searching}
+          >
+            <LinearGradient colors={gradients.primary} style={styles.buttonGradient}>
+              <Ionicons 
+                name={searching ? "hourglass" : "search"} 
+                size={20} 
+                color={Colors.neutral.white} 
+              />
+              <Text style={styles.buttonText}>
+                {searching ? "Searching..." : "Search Available Rooms"}
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          {availableRooms.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Available Rooms</Text>
+              {availableRooms.map((room) => (
+                <TouchableOpacity
+                  key={room.id}
+                  style={[styles.roomCard, selectedNewRoom?.id === room.id && styles.roomCardSelected]}
+                  onPress={() => setSelectedNewRoom(room)}
+                >
+                  <View style={styles.roomHeader}>
+                    <View>
+                      <Text style={styles.roomName}>{room.name}</Text>
+                      <Text style={styles.roomNumber}>Room {room.roomNumber} • Floor {room.floor}</Text>
+                      <Text style={styles.roomView}>{room.view}</Text>
+                    </View>
+                    {selectedNewRoom?.id === room.id && (
+                      <Ionicons name="checkmark-circle" size={24} color={Colors.primary.larkieBlue} />
+                    )}
+                  </View>
+                  <Text style={styles.roomDescription}>{room.description}</Text>
+                  <Text style={styles.roomPrice}>{room.priceRange}</Text>
+                  {room.larkieRecommendation && (
+                    <View style={styles.larkieRecommendation}>
+                      <Ionicons name="chatbubble" size={12} color={Colors.primary.larkieBlue} />
+                      <Text style={styles.larkieRecommendationText}>
+                        Larkie says: "{room.larkieRecommendation}"
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+      )}
+
+      {(selectedReservation || selectedNewRoom) && (
+        <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+          <LinearGradient colors={gradients.primary} style={styles.buttonGradient}>
+            <Text style={styles.buttonText}>Continue to Guest Information</Text>
+            <Ionicons name="arrow-forward" size={20} color={Colors.neutral.white} />
+          </LinearGradient>
+        </TouchableOpacity>
+      )}
+
+      {hasReservation !== null && (
+        <TouchableOpacity
+          style={styles.changeOptionButton}
+          onPress={() => {
+            setHasReservation(null);
+            setSelectedReservation(null);
+            setFoundReservations([]);
+            setSelectedNewRoom(null);
+            setAvailableRooms([]);
+          }}
+        >
+          <Text style={styles.changeOptionText}>← Change Option</Text>
+        </TouchableOpacity>
+      )}
+    </ScrollView>
   );
 };
 
@@ -746,6 +1133,7 @@ export const ComprehensivePreCheckInScreen: React.FC<NavigationProps> = ({ navig
   const [formData, setFormData] = useState({});
 
   const steps = [
+    'Reservation Check',
     'Room Selection',
     'Guest Info',
     'Additional Guests',
@@ -779,13 +1167,14 @@ export const ComprehensivePreCheckInScreen: React.FC<NavigationProps> = ({ navig
     };
 
     switch (currentStep) {
-      case 0: return <RoomSelectionStep {...stepProps} />;
-      case 1: return <GuestInformationStep {...stepProps} />;
-      case 2: return <AdditionalGuestsStep {...stepProps} />;
-      case 3: return <PetRegistrationStep {...stepProps} />;
-      case 4: return <VehicleInformationStep {...stepProps} />;
-      case 5: return <ReviewStep {...stepProps} navigation={navigation} />;
-      default: return <RoomSelectionStep {...stepProps} />;
+      case 0: return <ReservationCheckStep {...stepProps} />;
+      case 1: return <RoomSelectionStep {...stepProps} />;
+      case 2: return <GuestInformationStep {...stepProps} />;
+      case 3: return <AdditionalGuestsStep {...stepProps} />;
+      case 4: return <PetRegistrationStep {...stepProps} />;
+      case 5: return <VehicleInformationStep {...stepProps} />;
+      case 6: return <ReviewStep {...stepProps} navigation={navigation} />;
+      default: return <ReservationCheckStep {...stepProps} />;
     }
   };
 
@@ -1467,5 +1856,153 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     marginRight: 8,
+  },
+  // Reservation check styles
+  optionCard: {
+    backgroundColor: Colors.neutral.white,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: Colors.neutral.lightGray,
+    shadowColor: Colors.primary.deepNavy,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  optionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  optionTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: Colors.primary.deepNavy,
+    flex: 1,
+    marginLeft: 12,
+  },
+  optionDescription: {
+    fontSize: 14,
+    color: Colors.neutral.gray,
+    lineHeight: 20,
+  },
+  searchMethodContainer: {
+    flexDirection: "row",
+    marginBottom: 20,
+    backgroundColor: Colors.neutral.lightGray,
+    borderRadius: 8,
+    padding: 4,
+  },
+  searchMethodButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderRadius: 6,
+  },
+  searchMethodActive: {
+    backgroundColor: Colors.primary.larkieBlue,
+  },
+  searchMethodText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.primary.deepNavy,
+  },
+  searchMethodTextActive: {
+    color: Colors.neutral.white,
+  },
+  dateInput: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 2,
+    borderColor: Colors.neutral.lightGray,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: Colors.neutral.white,
+  },
+  dateInputText: {
+    fontSize: 16,
+    color: Colors.primary.deepNavy,
+  },
+  searchButton: {
+    borderRadius: 12,
+    overflow: "hidden",
+    marginBottom: 20,
+  },
+  searchButtonLoading: {
+    opacity: 0.7,
+  },
+  reservationCard: {
+    backgroundColor: Colors.neutral.white,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: Colors.neutral.lightGray,
+    shadowColor: Colors.primary.deepNavy,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  reservationCardSelected: {
+    borderColor: Colors.primary.larkieBlue,
+    backgroundColor: '#F8FEFF',
+  },
+  reservationHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  reservationConfirmation: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: Colors.primary.deepNavy,
+  },
+  reservationStatus: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: Colors.accent.successGreen,
+    backgroundColor: '#E8F5E8',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  reservationHotel: {
+    fontSize: 16,
+    color: Colors.primary.deepNavy,
+    marginBottom: 4,
+  },
+  reservationDates: {
+    fontSize: 14,
+    color: Colors.neutral.gray,
+    marginBottom: 4,
+  },
+  reservationDetails: {
+    fontSize: 14,
+    color: Colors.neutral.gray,
+  },
+  roomNumber: {
+    fontSize: 12,
+    color: Colors.neutral.gray,
+    marginTop: 2,
+  },
+  roomView: {
+    fontSize: 12,
+    color: Colors.primary.larkieBlue,
+    fontWeight: "600",
+    marginTop: 1,
+  },
+  changeOptionButton: {
+    alignItems: "center",
+    paddingVertical: 16,
+  },
+  changeOptionText: {
+    fontSize: 16,
+    color: Colors.primary.larkieBlue,
+    fontWeight: "600",
   },
 });

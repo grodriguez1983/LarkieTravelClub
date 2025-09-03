@@ -285,4 +285,32 @@ export interface AdditionalFees {
   total: number;
 }
 
-export type PreCheckInStep = 'room-selection' | 'guest-info' | 'additional-guests' | 'pets' | 'vehicle' | 'review' | 'complete';
+export type PreCheckInStep = 'reservation-check' | 'room-selection' | 'guest-info' | 'additional-guests' | 'pets' | 'vehicle' | 'review' | 'complete';
+
+export interface Reservation {
+  id: string;
+  confirmationNumber: string;
+  guestName: string;
+  checkInDate: Date;
+  checkOutDate: Date;
+  roomType: RoomType;
+  roomNumber?: string;
+  status: ReservationStatus;
+  totalGuests: number;
+  totalAmount: number;
+  isPaid: boolean;
+  createdAt: Date;
+  hotelName: string;
+  specialRequests?: string;
+  isPreCheckedIn: boolean;
+}
+
+export type ReservationStatus = 'Confirmed' | 'Pending' | 'Cancelled' | 'Completed' | 'No-Show';
+
+export interface AvailableRoom extends RoomPreference {
+  roomNumber: string;
+  floor: number;
+  view: string;
+  isClean: boolean;
+  lastCleaned?: Date;
+}

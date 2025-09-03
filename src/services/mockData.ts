@@ -1,4 +1,4 @@
-import { User, Location, Reward, Achievement, PointTransaction, MembershipLevel, RoomPreference, PropertyRecommendation, GuestPersonalData, AdditionalGuest, PetRegistration, VehicleInformation, DocumentType, TravelPurpose, PetSpecies, VehicleType } from '../types';
+import { User, Location, Reward, Achievement, PointTransaction, MembershipLevel, RoomPreference, PropertyRecommendation, GuestPersonalData, AdditionalGuest, PetRegistration, VehicleInformation, DocumentType, TravelPurpose, PetSpecies, VehicleType, Reservation, AvailableRoom } from '../types';
 
 export const mockUser: User = {
   id: '1',
@@ -640,4 +640,143 @@ export const calculatePreCheckInFees = (pets: PetRegistration[], vehicle?: Vehic
     other,
     total: petFees + parkingFees + other
   };
+};
+
+// Mock reservations data
+export const mockUserReservations: Reservation[] = [
+  {
+    id: 'res-1',
+    confirmationNumber: 'LTC-2024-001234',
+    guestName: 'Alex Johnson',
+    checkInDate: new Date('2024-12-15'),
+    checkOutDate: new Date('2024-12-22'),
+    roomType: 'Deluxe',
+    roomNumber: '1205',
+    status: 'Confirmed',
+    totalGuests: 3,
+    totalAmount: 1890.00,
+    isPaid: true,
+    createdAt: new Date('2024-11-20'),
+    hotelName: 'Larkie\'s Paradise Resort',
+    specialRequests: 'Ocean view room, late checkout if possible',
+    isPreCheckedIn: false
+  },
+  {
+    id: 'res-2',
+    confirmationNumber: 'LTC-2025-000567',
+    guestName: 'Alex Johnson',
+    checkInDate: new Date('2025-02-14'),
+    checkOutDate: new Date('2025-02-18'),
+    roomType: 'Suite',
+    status: 'Confirmed',
+    totalGuests: 2,
+    totalAmount: 1600.00,
+    isPaid: true,
+    createdAt: new Date('2024-12-01'),
+    hotelName: 'Larkie\'s Mountain Lodge',
+    specialRequests: 'Romantic setup for Valentine\'s Day',
+    isPreCheckedIn: false
+  }
+];
+
+export const mockAvailableRooms: AvailableRoom[] = [
+  {
+    id: '1',
+    type: 'Standard',
+    name: 'Comfort King',
+    description: 'Spacious room with city views and modern amenities',
+    amenities: ['King bed', 'City view', 'Work desk', 'WiFi', 'Coffee maker'],
+    priceRange: '$150-200/night',
+    available: true,
+    larkieRecommendation: "Perfect for first-time explorers! I love the morning light here.",
+    roomNumber: '803',
+    floor: 8,
+    view: 'City View',
+    isClean: true,
+    lastCleaned: new Date('2024-12-10T14:00:00')
+  },
+  {
+    id: '2',
+    type: 'Deluxe',
+    name: 'Ocean View Deluxe',
+    description: 'Premium room overlooking the beautiful coastline',
+    amenities: ['King bed', 'Ocean view', 'Balcony', 'Mini bar', 'Luxury bath'],
+    priceRange: '$250-300/night',
+    available: true,
+    larkieRecommendation: "This is where Larkie stays! The sunset views are absolutely magical from here.",
+    roomNumber: '1205',
+    floor: 12,
+    view: 'Ocean View',
+    isClean: true,
+    lastCleaned: new Date('2024-12-10T16:30:00')
+  },
+  {
+    id: '3',
+    type: 'Suite',
+    name: 'Executive Suite',
+    description: 'Luxurious suite with separate living area and premium amenities',
+    amenities: ['King bed', 'Living room', 'Kitchenette', 'Premium minibar', 'Spa bath'],
+    priceRange: '$400-500/night',
+    available: true,
+    larkieRecommendation: "For the true adventurers! I've heard the room service here is legendary.",
+    roomNumber: '1501',
+    floor: 15,
+    view: 'Panoramic Ocean & City View',
+    isClean: true,
+    lastCleaned: new Date('2024-12-10T10:00:00')
+  },
+  {
+    id: '4',
+    type: 'Penthouse',
+    name: 'Presidential Penthouse',
+    description: 'Ultimate luxury with panoramic views and exclusive services',
+    amenities: ['2 bedrooms', 'Full kitchen', 'Private terrace', 'Butler service', 'Infinity pool access'],
+    priceRange: '$800-1200/night',
+    available: false,
+    larkieRecommendation: "The crown jewel! Even I get starstruck by this place!",
+    roomNumber: '2001',
+    floor: 20,
+    view: '360° Panoramic View',
+    isClean: false,
+    lastCleaned: new Date('2024-12-09T12:00:00')
+  }
+];
+
+export const searchReservationByConfirmation = async (confirmationNumber: string): Promise<Reservation | null> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const reservation = mockUserReservations.find(
+        res => res.confirmationNumber.toLowerCase().includes(confirmationNumber.toLowerCase())
+      );
+      resolve(reservation || null);
+    }, 1000); // Simulate API call delay
+  });
+};
+
+export const searchReservationByNameAndDate = async (name: string, checkInDate: Date): Promise<Reservation[]> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const reservations = mockUserReservations.filter(
+        res => 
+          res.guestName.toLowerCase().includes(name.toLowerCase()) &&
+          res.checkInDate.toDateString() === checkInDate.toDateString()
+      );
+      resolve(reservations);
+    }, 1000);
+  });
+};
+
+export const getAvailableRoomsForDates = async (checkInDate: Date, checkOutDate: Date, guests: number): Promise<AvailableRoom[]> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Filter rooms based on availability and capacity
+      const availableRooms = mockAvailableRooms.filter(room => {
+        const maxCapacity = room.type === 'Standard' ? 2 : 
+                          room.type === 'Deluxe' ? 3 : 
+                          room.type === 'Suite' ? 4 : 6;
+        return room.available && room.isClean && guests <= maxCapacity;
+      });
+      resolve(availableRooms);
+    }, 1500);
+  });
 };

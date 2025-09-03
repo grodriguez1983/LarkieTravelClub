@@ -2,7 +2,8 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HomeScreen } from '../screens/main/HomeScreen';
 import { MapScreen } from '../screens/main/MapScreen';
@@ -37,9 +38,16 @@ const ScannerStack = () => (
 );
 
 export const MainTabNavigator = () => {
+  const insets = useSafeAreaInsets();
+  
+  // Calculate proper height and padding for Android
+  const tabBarHeight = Platform.OS === 'android' ? 70 + Math.max(insets.bottom, 10) : 60 + insets.bottom;
+  const bottomPadding = Platform.OS === 'android' ? Math.max(insets.bottom + 5, 15) : insets.bottom + 5;
+
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
+    <View style={{ flex: 1, paddingBottom: Platform.OS === 'android' ? tabBarHeight : 0 }}>
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
         headerShown: false,
         tabBarIcon: ({ focused, color, size }) => {
           let iconName: keyof typeof Ionicons.glyphMap;
@@ -74,13 +82,23 @@ export const MainTabNavigator = () => {
           backgroundColor: Colors.neutral.white,
           borderTopColor: Colors.neutral.lightGray,
           borderTopWidth: 1,
-          paddingBottom: 5,
-          paddingTop: 5,
-          height: 60,
+          paddingBottom: bottomPadding,
+          paddingTop: 8,
+          height: tabBarHeight,
+          elevation: 8,
+          shadowColor: Colors.primary.deepNavy,
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 6,
+          position: Platform.OS === 'android' ? 'absolute' : 'relative',
+          bottom: Platform.OS === 'android' ? 0 : undefined,
+          left: Platform.OS === 'android' ? 0 : undefined,
+          right: Platform.OS === 'android' ? 0 : undefined,
         },
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '600',
+          marginBottom: Platform.OS === 'android' ? 2 : 0,
         },
       })}
     >
@@ -99,7 +117,8 @@ export const MainTabNavigator = () => {
       />
       <Tab.Screen name="Rewards" component={RewardsScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
-    </Tab.Navigator>
+      </Tab.Navigator>
+    </View>
   );
 };
 

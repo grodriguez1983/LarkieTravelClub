@@ -22,7 +22,8 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.gaborovairix.LarkieTravelClub"
+      "bundleIdentifier": "com.gaborovairix.LarkieTravelClub",
+      "runtimeVersion": "1.0.0"
     },
     "android": {
       "adaptiveIcon": {
@@ -32,11 +33,25 @@
       "edgeToEdgeEnabled": true,
       "permissions": [
         "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
-      ]
+      ],
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "823b3176-3474-4697-94e8-094ec5bc0fbb"
+      }
+    },
+    "owner": "gaborovairix",
+    "updates": {
+      "url": "https://u.expo.dev/823b3176-3474-4697-94e8-094ec5bc0fbb"
     }
   }
 }

@@ -137,6 +137,9 @@ export const HomeScreen: React.FC<NavigationProps> = ({ navigation }) => {
       case "progress":
         navigation.navigate("Profile");
         break;
+      case "checkin":
+        navigation.navigate("PreCheckIn");
+        break;
     }
   };
 
@@ -304,6 +307,21 @@ export const HomeScreen: React.FC<NavigationProps> = ({ navigation }) => {
                 <Text style={styles.actionButtonText}>My Progress</Text>
                 <Text style={styles.actionButtonSubtext}>
                   {user.membershipLevel}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => handleQuickAction("checkin")}
+              >
+                <Ionicons
+                  name="checkmark-circle"
+                  size={24}
+                  color={Colors.primary.larkieBlue}
+                />
+                <Text style={styles.actionButtonText}>Pre-Check-In</Text>
+                <Text style={styles.actionButtonSubtext}>
+                  Skip the queue
                 </Text>
               </TouchableOpacity>
             </View>

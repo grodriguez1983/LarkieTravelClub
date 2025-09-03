@@ -1,4 +1,4 @@
-import { User, Location, Reward, Achievement, PointTransaction, MembershipLevel } from '../types';
+import { User, Location, Reward, Achievement, PointTransaction, MembershipLevel, RoomPreference, PropertyRecommendation, GuestPersonalData, AdditionalGuest, PetRegistration, VehicleInformation, DocumentType, TravelPurpose, PetSpecies, VehicleType } from '../types';
 
 export const mockUser: User = {
   id: '1',
@@ -306,4 +306,338 @@ export const getLarkieMessages = (userName: string, context: string) => {
 
   const contextMessages = messages[context as keyof typeof messages] || messages.welcome;
   return contextMessages[Math.floor(Math.random() * contextMessages.length)];
+};
+
+export const mockRoomPreferences: RoomPreference[] = [
+  {
+    id: '1',
+    type: 'Standard',
+    name: 'Comfort King',
+    description: 'Spacious room with city views and modern amenities',
+    amenities: ['King bed', 'City view', 'Work desk', 'WiFi', 'Coffee maker'],
+    priceRange: '$150-200/night',
+    available: true,
+    larkieRecommendation: "Perfect for first-time explorers! I love the morning light here."
+  },
+  {
+    id: '2',
+    type: 'Deluxe',
+    name: 'Ocean View Deluxe',
+    description: 'Premium room overlooking the beautiful coastline',
+    amenities: ['King bed', 'Ocean view', 'Balcony', 'Mini bar', 'Luxury bath'],
+    priceRange: '$250-300/night',
+    available: true,
+    larkieRecommendation: "This is where Larkie stays! The sunset views are absolutely magical from here."
+  },
+  {
+    id: '3',
+    type: 'Suite',
+    name: 'Executive Suite',
+    description: 'Luxurious suite with separate living area and premium amenities',
+    amenities: ['King bed', 'Living room', 'Kitchenette', 'Premium minibar', 'Spa bath'],
+    priceRange: '$400-500/night',
+    available: true,
+    larkieRecommendation: "For the true adventurers! I've heard the room service here is legendary."
+  },
+  {
+    id: '4',
+    type: 'Penthouse',
+    name: 'Presidential Penthouse',
+    description: 'Ultimate luxury with panoramic views and exclusive services',
+    amenities: ['2 bedrooms', 'Full kitchen', 'Private terrace', 'Butler service', 'Infinity pool access'],
+    priceRange: '$800-1200/night',
+    available: false,
+    larkieRecommendation: "The crown jewel! Even I get starstruck by this place!"
+  }
+];
+
+export const mockPropertyRecommendations: PropertyRecommendation[] = [
+  {
+    id: '1',
+    title: 'Sunset Rooftop Dining',
+    description: 'Don\'t miss the golden hour at our signature rooftop restaurant',
+    category: 'dining',
+    location: 'Floor 25 - Rooftop',
+    operatingHours: '6:00 PM - 11:00 PM',
+    larkieNote: "Trust me on this one - the shrimp tacos at sunset are what dreams are made of! I've been recommending this spot to every guest.",
+    priority: 'high'
+  },
+  {
+    id: '2',
+    title: 'Morning Yoga by the Pool',
+    description: 'Start your day with serenity and ocean views',
+    category: 'activities',
+    location: 'Pool Deck Level 3',
+    operatingHours: '7:00 AM - 9:00 AM (Daily)',
+    larkieNote: "I love watching the sunrise yoga sessions! The instructor Maria is amazing - she even taught me a few poses!",
+    priority: 'medium'
+  },
+  {
+    id: '3',
+    title: 'Spa Signature Treatment',
+    description: 'Rejuvenating ocean-inspired treatments',
+    category: 'spa',
+    location: 'Serenity Spa - Floor 2',
+    operatingHours: '9:00 AM - 8:00 PM',
+    larkieNote: "The sea salt scrub here is divine! I always recommend it after a long day of exploring the property.",
+    priority: 'medium'
+  },
+  {
+    id: '4',
+    title: 'VIP Pool Cabana Access',
+    description: 'Private poolside retreat with bottle service',
+    category: 'amenities',
+    location: 'Infinity Pool - VIP Section',
+    operatingHours: '10:00 AM - 6:00 PM',
+    larkieNote: "As a Larkie guest, you get priority booking! The cabanas have the best people-watching spots.",
+    priority: 'high'
+  }
+];
+
+export const getArrivalTimeOptions = () => [
+  '12:00 PM - 2:00 PM',
+  '2:00 PM - 4:00 PM', 
+  '4:00 PM - 6:00 PM',
+  '6:00 PM - 8:00 PM',
+  '8:00 PM - 10:00 PM',
+  'After 10:00 PM'
+];
+
+// Mock data for comprehensive pre-check-in
+
+export const mockMainGuest: GuestPersonalData = {
+  id: 'main-guest-1',
+  fullName: 'Alex Johnson',
+  dateOfBirth: new Date('1985-03-15'),
+  nationality: 'United States',
+  occupation: 'Software Engineer',
+  residentialAddress: {
+    street: '123 Tech Street, Apt 4B',
+    city: 'San Francisco',
+    state: 'California',
+    postalCode: '94105',
+    country: 'United States'
+  },
+  emergencyContact: {
+    name: 'Sarah Johnson',
+    relationship: 'Spouse',
+    phoneNumber: '+1 (555) 987-6543',
+    email: 'sarah.johnson@email.com'
+  },
+  travelPurpose: 'Tourism',
+  document: {
+    type: 'Passport',
+    number: 'US123456789',
+    expirationDate: new Date('2028-11-20'),
+    issuingCountry: 'United States',
+    imageUrl: 'mock://passport-image.jpg',
+    ocrData: {
+      extractedName: 'JOHNSON, ALEX',
+      extractedDateOfBirth: new Date('1985-03-15'),
+      extractedNumber: 'US123456789',
+      confidence: 0.98
+    },
+    verified: true
+  }
+};
+
+export const mockAdditionalGuests: AdditionalGuest[] = [
+  {
+    id: 'guest-2',
+    personalData: {
+      id: 'guest-2-data',
+      fullName: 'Sarah Johnson',
+      dateOfBirth: new Date('1987-07-22'),
+      nationality: 'United States',
+      occupation: 'Marketing Manager',
+      residentialAddress: {
+        street: '123 Tech Street, Apt 4B',
+        city: 'San Francisco',
+        state: 'California',
+        postalCode: '94105',
+        country: 'United States'
+      },
+      emergencyContact: {
+        name: 'Robert Johnson',
+        relationship: 'Father',
+        phoneNumber: '+1 (555) 876-5432'
+      },
+      travelPurpose: 'Tourism',
+      document: {
+        type: 'Passport',
+        number: 'US987654321',
+        expirationDate: new Date('2029-05-15'),
+        issuingCountry: 'United States',
+        imageUrl: 'mock://passport-sarah.jpg',
+        verified: true
+      }
+    },
+    relationshipToMainGuest: 'Spouse',
+    isMinor: false
+  },
+  {
+    id: 'guest-3',
+    personalData: {
+      id: 'guest-3-data',
+      fullName: 'Emma Johnson',
+      dateOfBirth: new Date('2015-12-08'),
+      nationality: 'United States',
+      occupation: 'Student',
+      residentialAddress: {
+        street: '123 Tech Street, Apt 4B',
+        city: 'San Francisco',
+        state: 'California',
+        postalCode: '94105',
+        country: 'United States'
+      },
+      emergencyContact: {
+        name: 'Alex Johnson',
+        relationship: 'Father',
+        phoneNumber: '+1 (555) 123-4567'
+      },
+      travelPurpose: 'Tourism',
+      document: {
+        type: 'Passport',
+        number: 'US456789123',
+        expirationDate: new Date('2030-01-10'),
+        issuingCountry: 'United States',
+        imageUrl: 'mock://passport-emma.jpg',
+        verified: true
+      }
+    },
+    relationshipToMainGuest: 'Child',
+    isMinor: true,
+    parentalAuthorization: {
+      parentName: 'Alex Johnson',
+      parentDocument: 'US123456789',
+      authorizationDocument: 'mock://parental-auth.pdf',
+      verified: true
+    }
+  }
+];
+
+export const mockPets: PetRegistration[] = [
+  {
+    id: 'pet-1',
+    name: 'Buddy',
+    species: 'Dog',
+    breed: 'Golden Retriever',
+    age: 3,
+    weight: 30,
+    vetCertificates: [
+      {
+        type: 'Health Certificate',
+        issueDate: new Date('2024-06-01'),
+        expirationDate: new Date('2025-06-01'),
+        veterinarianName: 'Dr. Smith',
+        imageUrl: 'mock://health-cert-buddy.pdf',
+        verified: true
+      },
+      {
+        type: 'Vaccination Record',
+        issueDate: new Date('2024-05-15'),
+        expirationDate: new Date('2025-05-15'),
+        veterinarianName: 'Dr. Smith',
+        imageUrl: 'mock://vaccination-buddy.pdf',
+        verified: true
+      }
+    ],
+    insurance: {
+      company: 'Pet Insurance Co.',
+      policyNumber: 'PIC-789456123',
+      expirationDate: new Date('2025-03-15'),
+      coverageAmount: 5000
+    },
+    dietaryRestrictions: ['No chicken', 'Grain-free'],
+    specialBehavior: 'Friendly with people, may be nervous around other dogs initially',
+    petFee: 75
+  }
+];
+
+export const mockVehicle: VehicleInformation = {
+  id: 'vehicle-1',
+  make: 'Tesla',
+  model: 'Model 3',
+  year: 2022,
+  color: 'Pearl White',
+  licensePlate: 'TECH123',
+  type: 'Electric Car',
+  driverLicense: {
+    number: 'CA-DL-123456789',
+    expirationDate: new Date('2027-03-15'),
+    issuingState: 'California',
+    imageUrl: 'mock://drivers-license.jpg',
+    verified: true
+  },
+  insurance: {
+    company: 'State Farm',
+    policyNumber: 'SF-AUTO-987654321',
+    expirationDate: new Date('2025-01-15'),
+    verified: true
+  },
+  specialNeeds: ['Electric Charging'],
+  parkingReservation: {
+    spaceNumber: 'EV-15',
+    level: 'Level 2',
+    dailyRate: 25,
+    totalFee: 150, // 6 nights * $25
+    hasElectricCharging: true
+  }
+};
+
+export const getNationalityOptions = () => [
+  'United States', 'Canada', 'United Kingdom', 'Germany', 'France', 'Japan', 
+  'Australia', 'Brazil', 'Mexico', 'Italy', 'Spain', 'Netherlands', 'Other'
+];
+
+export const getOccupationOptions = () => [
+  'Software Engineer', 'Marketing Manager', 'Sales Representative', 'Teacher', 
+  'Doctor', 'Lawyer', 'Consultant', 'Student', 'Retired', 'Business Owner', 
+  'Designer', 'Writer', 'Other'
+];
+
+export const getTravelPurposeOptions = (): TravelPurpose[] => [
+  'Tourism', 'Business', 'Medical', 'Family Visit', 'Education', 'Other'
+];
+
+export const getDocumentTypeOptions = (): DocumentType[] => [
+  'Passport', 'National ID', 'Driver License', 'Other'
+];
+
+export const getRelationshipOptions = () => [
+  'Spouse', 'Child', 'Parent', 'Sibling', 'Friend', 'Colleague', 'Other'
+];
+
+export const getPetSpeciesOptions = (): PetSpecies[] => [
+  'Dog', 'Cat', 'Bird', 'Fish', 'Rabbit', 'Other'
+];
+
+export const getVehicleTypeOptions = (): VehicleType[] => [
+  'Car', 'Motorcycle', 'RV', 'Truck', 'Van', 'Electric Car', 'Other'
+];
+
+export const simulateDocumentOCR = (documentType: DocumentType): Promise<any> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        extractedName: 'JOHNSON, ALEX',
+        extractedDateOfBirth: new Date('1985-03-15'),
+        extractedNumber: 'US123456789',
+        confidence: 0.95 + Math.random() * 0.05 // 95-100% confidence
+      });
+    }, 2000); // Simulate 2 second processing time
+  });
+};
+
+export const calculatePreCheckInFees = (pets: PetRegistration[], vehicle?: VehicleInformation) => {
+  const petFees = pets.reduce((total, pet) => total + pet.petFee, 0);
+  const parkingFees = vehicle?.parkingReservation?.totalFee || 0;
+  const other = 0;
+  
+  return {
+    petFees,
+    parkingFees,
+    other,
+    total: petFees + parkingFees + other
+  };
 };

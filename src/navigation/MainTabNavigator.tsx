@@ -9,10 +9,18 @@ import { MapScreen } from '../screens/main/MapScreen';
 import { ScannerScreen } from '../screens/main/ScannerScreen';
 import { RewardsScreen } from '../screens/main/RewardsScreen';
 import { ProfileScreen } from '../screens/main/ProfileScreen';
+import { ComprehensivePreCheckInScreen } from '../screens/main/ComprehensivePreCheckInScreen';
 import { Colors } from '../constants/colors';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
+
+const HomeStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="HomeMain" component={HomeScreen} />
+    <Stack.Screen name="PreCheckIn" component={ComprehensivePreCheckInScreen} />
+  </Stack.Navigator>
+);
 
 const ScannerStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -74,7 +82,7 @@ export const MainTabNavigator = () => {
         },
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Home" component={HomeStack} />
       <Tab.Screen name="Map" component={MapScreen} />
       <Tab.Screen 
         name="Scanner" 

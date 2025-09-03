@@ -1,4 +1,4 @@
-import { User, Location, Reward, Achievement, PointTransaction, MembershipLevel, RoomPreference, PropertyRecommendation, GuestPersonalData, AdditionalGuest, PetRegistration, VehicleInformation, DocumentType, TravelPurpose, PetSpecies, VehicleType, Reservation, AvailableRoom, UserRegistrationType } from '../types';
+import { User, Location, Reward, Achievement, PointTransaction, MembershipLevel, RoomPreference, PropertyRecommendation, GuestPersonalData, AdditionalGuest, PetRegistration, VehicleInformation, DocumentType, TravelPurpose, PetSpecies, VehicleType, Reservation, AvailableRoom, UserRegistrationType, Notification } from '../types';
 
 export const mockUser: User = {
   id: '1',
@@ -780,5 +780,141 @@ export const getAvailableRoomsForDates = async (checkInDate: Date, checkOutDate:
       });
       resolve(availableRooms);
     }, 1500);
+  });
+};
+
+// Mock Notifications Data
+export const mockNotifications: Notification[] = [
+  {
+    id: '1',
+    type: 'welcome',
+    title: '🎉 Welcome to Larkie\'s Travel Club!',
+    message: 'Your account has been successfully created. Start exploring and earning points!',
+    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+    read: false,
+    priority: 'high',
+    category: 'system',
+    actionUrl: '/profile'
+  },
+  {
+    id: '2',
+    type: 'points',
+    title: '🎯 Points Earned!',
+    message: 'You earned 75 points at Pool Bar! Keep discovering new locations.',
+    timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
+    read: false,
+    priority: 'medium',
+    category: 'rewards',
+    relatedData: { locationId: '1', points: 75 }
+  },
+  {
+    id: '3',
+    type: 'achievement',
+    title: '🏆 Achievement Unlocked: First Timer!',
+    message: 'Congratulations! You\'ve discovered your first location and earned a special badge.',
+    timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
+    read: true,
+    priority: 'medium',
+    category: 'rewards',
+    relatedData: { achievementId: '1' }
+  },
+  {
+    id: '4',
+    type: 'promotion',
+    title: '🍸 Happy Hour Special',
+    message: 'Pool Bar happy hour is now active! Get 20% off all cocktails until 6 PM.',
+    timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+    read: false,
+    priority: 'medium',
+    category: 'promotion',
+    actionUrl: '/map',
+    relatedData: { locationId: '1', discount: 20 }
+  },
+  {
+    id: '5',
+    type: 'location',
+    title: '🗺️ New Location Available',
+    message: 'A hidden gem has been unlocked near you! Check out the Secret Garden Terrace.',
+    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
+    read: true,
+    priority: 'low',
+    category: 'social',
+    actionUrl: '/map',
+    relatedData: { locationId: '8' }
+  },
+  {
+    id: '6',
+    type: 'reward',
+    title: '🎁 New Reward Available',
+    message: 'You can now redeem a complimentary appetizer at Rooftop Restaurant with your points!',
+    timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+    read: true,
+    priority: 'medium',
+    category: 'rewards',
+    actionUrl: '/rewards',
+    relatedData: { rewardId: '3' }
+  },
+  {
+    id: '7',
+    type: 'reservation',
+    title: '📅 Check-in Reminder',
+    message: 'Your check-in is today at 3:00 PM. Complete your pre-check-in to save time!',
+    timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12 hours ago
+    read: false,
+    priority: 'high',
+    category: 'booking',
+    actionUrl: '/pre-checkin'
+  }
+];
+
+// Notification Service Functions
+export const getNotifications = async (userId?: string): Promise<Notification[]> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Sort by timestamp, newest first
+      const sortedNotifications = [...mockNotifications].sort(
+        (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
+      );
+      resolve(sortedNotifications);
+    }, 500);
+  });
+};
+
+export const markNotificationAsRead = async (notificationId: string): Promise<void> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const notification = mockNotifications.find(n => n.id === notificationId);
+      if (notification) {
+        notification.read = true;
+      }
+      resolve();
+    }, 200);
+  });
+};
+
+export const markAllNotificationsAsRead = async (userId?: string): Promise<void> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      mockNotifications.forEach(notification => {
+        notification.read = true;
+      });
+      resolve();
+    }, 300);
+  });
+};
+
+export const getUnreadNotificationCount = (): number => {
+  return mockNotifications.filter(notification => !notification.read).length;
+};
+
+export const deleteNotification = async (notificationId: string): Promise<void> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const index = mockNotifications.findIndex(n => n.id === notificationId);
+      if (index > -1) {
+        mockNotifications.splice(index, 1);
+      }
+      resolve();
+    }, 200);
   });
 };

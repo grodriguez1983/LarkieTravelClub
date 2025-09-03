@@ -10,6 +10,7 @@ import { ScannerScreen } from '../screens/main/ScannerScreen';
 import { RewardsScreen } from '../screens/main/RewardsScreen';
 import { ProfileScreen } from '../screens/main/ProfileScreen';
 import { ComprehensivePreCheckInScreen } from '../screens/main/ComprehensivePreCheckInScreen';
+import { NotificationsScreen } from '../screens/main/NotificationsScreen';
 import { Colors } from '../constants/colors';
 
 const Tab = createBottomTabNavigator();
@@ -19,6 +20,7 @@ const HomeStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="HomeMain" component={HomeScreen} />
     <Stack.Screen name="PreCheckIn" component={ComprehensivePreCheckInScreen} />
+    <Stack.Screen name="Notifications" component={NotificationsScreen} />
   </Stack.Navigator>
 );
 

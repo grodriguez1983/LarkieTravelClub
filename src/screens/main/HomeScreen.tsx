@@ -22,6 +22,7 @@ import {
   mockPointHistory,
   getLarkieMessages,
   getMembershipLevelInfo,
+  getUnreadNotificationCount,
 } from "../../services/mockData";
 
 const { width } = Dimensions.get("window");
@@ -33,7 +34,7 @@ export const HomeScreen: React.FC<NavigationProps> = ({ navigation }) => {
   );
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [notificationCount] = useState(3);
+  const [notificationCount, setNotificationCount] = useState(0);
 
   const fadeAnim = new Animated.Value(1);
   const slideAnim = new Animated.Value(0);
@@ -67,6 +68,10 @@ export const HomeScreen: React.FC<NavigationProps> = ({ navigation }) => {
       // Siempre usar datos mock para garantizar funcionalidad
       setUser(mockUser);
       setRecentActivity(mockPointHistory.slice(0, 5));
+      
+      // Load notification count
+      const unreadCount = getUnreadNotificationCount();
+      setNotificationCount(unreadCount);
 
       console.log("User data loaded:", mockUser.name);
       console.log(
@@ -74,11 +79,13 @@ export const HomeScreen: React.FC<NavigationProps> = ({ navigation }) => {
         mockPointHistory.length,
         "transactions"
       );
+      console.log("Unread notifications:", unreadCount);
     } catch (error) {
       console.error("Error loading user data:", error);
       // Fallback a datos mock
       setUser(mockUser);
       setRecentActivity(mockPointHistory.slice(0, 5));
+      setNotificationCount(getUnreadNotificationCount());
     } finally {
       console.log("Setting loading to false");
       setLoading(false);
@@ -212,7 +219,10 @@ export const HomeScreen: React.FC<NavigationProps> = ({ navigation }) => {
                   {user.pointsBalance.toLocaleString()}
                 </Text>
               </View>
-              <TouchableOpacity style={styles.notificationButton}>
+              <TouchableOpacity 
+                style={styles.notificationButton}
+                onPress={() => navigation.navigate('Notifications')}
+              >
                 <Ionicons
                   name="notifications"
                   size={24}

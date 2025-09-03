@@ -318,3 +318,24 @@ export interface AvailableRoom extends RoomPreference {
   isClean: boolean;
   lastCleaned?: Date;
 }
+
+// Notification System Types
+export interface Notification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  timestamp: Date;
+  read: boolean;
+  priority: NotificationPriority;
+  category: NotificationCategory;
+  actionUrl?: string;
+  imageUrl?: string;
+  relatedData?: any;
+}
+
+export type NotificationType = 'welcome' | 'points' | 'achievement' | 'location' | 'reward' | 'reservation' | 'promotion' | 'reminder';
+
+export type NotificationPriority = 'low' | 'medium' | 'high' | 'urgent';
+
+export type NotificationCategory = 'system' | 'rewards' | 'social' | 'booking' | 'promotion';

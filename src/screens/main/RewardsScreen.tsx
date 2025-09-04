@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import QRCode from "react-native-qrcode-svg";
 import { LarkieCharacter } from "../../components/LarkieCharacter";
 import { Colors, gradients } from "../../constants/colors";
 import {
@@ -44,6 +45,8 @@ export const RewardsScreen: React.FC<NavigationProps> = ({ navigation }) => {
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
   const [showRewardModal, setShowRewardModal] = useState(false);
   const [showRedemptionSuccess, setShowRedemptionSuccess] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<PointTransaction | null>(null);
+  const [showQRModal, setShowQRModal] = useState(false);
 
   useEffect(() => {
     loadUserData();
@@ -176,6 +179,26 @@ export const RewardsScreen: React.FC<NavigationProps> = ({ navigation }) => {
 
   const canAffordReward = (reward: Reward) =>
     user.pointsBalance >= reward.pointCost;
+
+  const handleTransactionPress = (transaction: PointTransaction) => {
+    if (transaction.type === 'redeemed') {
+      setSelectedTransaction(transaction);
+      setShowQRModal(true);
+    }
+  };
+
+  const generateQRData = (transaction: PointTransaction) => {
+    return JSON.stringify({
+      type: 'reward_redemption',
+      transactionId: transaction.id,
+      description: transaction.description,
+      amount: Math.abs(transaction.amount),
+      timestamp: transaction.timestamp,
+      confirmationCode: `RW${Date.now().toString().slice(-6)}`,
+      userId: user.id,
+      userName: user.name
+    });
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -387,7 +410,15 @@ export const RewardsScreen: React.FC<NavigationProps> = ({ navigation }) => {
           <View style={styles.historyContainer}>
             {pointHistory.length > 0 ? (
               pointHistory.map((transaction) => (
-                <View key={transaction.id} style={styles.historyItem}>
+                <TouchableOpacity
+                  key={transaction.id}
+                  style={[
+                    styles.historyItem,
+                    transaction.type === 'redeemed' ? styles.historyItemClickable : {},
+                  ]}
+                  onPress={() => handleTransactionPress(transaction)}
+                  disabled={transaction.type !== 'redeemed'}
+                >
                   <View style={styles.historyIcon}>
                     <Ionicons
                       name={getTransactionIcon(transaction.type)}
@@ -408,6 +439,11 @@ export const RewardsScreen: React.FC<NavigationProps> = ({ navigation }) => {
                     <Text style={styles.historyTime}>
                       {formatTransactionTime(new Date(transaction.timestamp))}
                     </Text>
+                    {transaction.type === 'redeemed' && (
+                      <Text style={styles.tapToViewQRHint}>
+                        Tap to show QR code
+                      </Text>
+                    )}
                   </View>
 
                   <View style={styles.historyAmount}>
@@ -420,8 +456,16 @@ export const RewardsScreen: React.FC<NavigationProps> = ({ navigation }) => {
                       {transaction.amount > 0 ? "+" : ""}
                       {transaction.amount}
                     </Text>
+                    {transaction.type === 'redeemed' && (
+                      <Ionicons
+                        name="qr-code"
+                        size={16}
+                        color={Colors.neutral.gray}
+                        style={{ marginTop: 2 }}
+                      />
+                    )}
                   </View>
-                </View>
+                </TouchableOpacity>
               ))
             ) : (
               <View style={styles.emptyState}>
@@ -579,6 +623,77 @@ export const RewardsScreen: React.FC<NavigationProps> = ({ navigation }) => {
                 </View>
               </View>
             </LinearGradient>
+          </View>
+        </View>
+      </Modal>
+
+      {/* QR Code Modal for Redeemed Rewards */}
+      <Modal visible={showQRModal} transparent animationType="slide">
+        <View style={styles.qrModalOverlay}>
+          <View style={styles.qrModal}>
+            <View style={styles.qrModalHeader}>
+              <Text style={styles.qrModalTitle}>Reward QR Code</Text>
+              <TouchableOpacity
+                style={styles.qrModalCloseButton}
+                onPress={() => setShowQRModal(false)}
+              >
+                <Ionicons name="close" size={24} color={Colors.neutral.gray} />
+              </TouchableOpacity>
+            </View>
+
+            {selectedTransaction && (
+              <View style={styles.qrModalContent}>
+                <View style={styles.qrCodeContainer}>
+                  <QRCode
+                    value={generateQRData(selectedTransaction)}
+                    size={200}
+                    color={Colors.primary.deepNavy}
+                    backgroundColor={Colors.neutral.white}
+                    logoSize={30}
+                    logoMargin={2}
+                    logoBorderRadius={15}
+                  />
+                </View>
+
+                <View style={styles.qrRewardInfo}>
+                  <Text style={styles.qrRewardName}>
+                    {selectedTransaction.description}
+                  </Text>
+                  <Text style={styles.qrRewardDate}>
+                    Redeemed on {new Date(selectedTransaction.timestamp).toLocaleDateString()}
+                  </Text>
+                  <View style={styles.qrRewardPoints}>
+                    <Ionicons
+                      name="diamond"
+                      size={16}
+                      color={Colors.accent.goldRewards}
+                    />
+                    <Text style={styles.qrRewardPointsText}>
+                      {Math.abs(selectedTransaction.amount)} Points Used
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.qrInstructions}>
+                  <Ionicons
+                    name="information-circle"
+                    size={24}
+                    color={Colors.primary.larkieBlue}
+                  />
+                  <Text style={styles.qrInstructionsText}>
+                    Show this QR code to the staff to claim your reward. 
+                    This code can be used if you need to re-claim or verify your redemption.
+                  </Text>
+                </View>
+
+                <View style={styles.qrConfirmationCode}>
+                  <Text style={styles.qrConfirmationLabel}>Confirmation Code:</Text>
+                  <Text style={styles.qrConfirmationNumber}>
+                    RW{selectedTransaction.id.slice(-6).toUpperCase()}
+                  </Text>
+                </View>
+              </View>
+            )}
           </View>
         </View>
       </Modal>
@@ -794,6 +909,13 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
+  historyItemClickable: {
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: Colors.primary.larkieBlue + '20',
+  },
   historyIcon: {
     marginRight: 12,
   },
@@ -821,6 +943,12 @@ const styles = StyleSheet.create({
   historyAmountText: {
     fontSize: 16,
     fontWeight: "bold",
+  },
+  tapToViewQRHint: {
+    fontSize: 11,
+    color: Colors.primary.larkieBlue,
+    fontStyle: "italic",
+    marginTop: 2,
   },
   emptyState: {
     alignItems: "center",
@@ -1016,5 +1144,116 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
     color: Colors.primary.deepNavy,
+  },
+  qrModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  qrModal: {
+    backgroundColor: Colors.neutral.white,
+    borderRadius: 20,
+    width: width - 40,
+    maxHeight: "80%",
+    overflow: "hidden",
+  },
+  qrModalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.neutral.lightGray,
+  },
+  qrModalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: Colors.primary.deepNavy,
+  },
+  qrModalCloseButton: {
+    padding: 5,
+  },
+  qrModalContent: {
+    padding: 20,
+    alignItems: "center",
+  },
+  qrCodeContainer: {
+    backgroundColor: Colors.neutral.white,
+    padding: 20,
+    borderRadius: 15,
+    shadowColor: Colors.primary.deepNavy,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 8,
+    marginBottom: 20,
+  },
+  qrRewardInfo: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  qrRewardName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: Colors.primary.deepNavy,
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  qrRewardDate: {
+    fontSize: 14,
+    color: Colors.neutral.gray,
+    marginBottom: 10,
+  },
+  qrRewardPoints: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.neutral.lightGray,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  qrRewardPointsText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.primary.deepNavy,
+    marginLeft: 6,
+  },
+  qrInstructions: {
+    flexDirection: "row",
+    backgroundColor: Colors.primary.larkieBlue + '10',
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 20,
+    alignItems: "flex-start",
+  },
+  qrInstructionsText: {
+    fontSize: 13,
+    color: Colors.primary.deepNavy,
+    lineHeight: 18,
+    marginLeft: 10,
+    flex: 1,
+  },
+  qrConfirmationCode: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: Colors.neutral.lightGray,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderRadius: 10,
+    width: "100%",
+  },
+  qrConfirmationLabel: {
+    fontSize: 14,
+    color: Colors.neutral.gray,
+    fontWeight: "500",
+  },
+  qrConfirmationNumber: {
+    fontSize: 16,
+    color: Colors.primary.deepNavy,
+    fontWeight: "bold",
+    letterSpacing: 1,
   },
 });

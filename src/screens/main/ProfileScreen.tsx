@@ -26,6 +26,7 @@ interface AppSettings {
   notificationsEnabled: boolean;
   larkieMessageFrequency: 'low' | 'normal' | 'high';
   soundEnabled: boolean;
+  language: 'en' | 'es' | 'fr';
 }
 
 export const ProfileScreen: React.FC<NavigationProps> = ({ navigation }) => {
@@ -35,8 +36,10 @@ export const ProfileScreen: React.FC<NavigationProps> = ({ navigation }) => {
     notificationsEnabled: true,
     larkieMessageFrequency: 'normal',
     soundEnabled: true,
+    language: 'en',
   });
   const [showLarkieEvolution, setShowLarkieEvolution] = useState(false);
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
 
   useEffect(() => {
     loadUserData();
@@ -383,6 +386,23 @@ export const ProfileScreen: React.FC<NavigationProps> = ({ navigation }) => {
                 </TouchableOpacity>
               </View>
 
+              <View style={styles.settingItem}>
+                <View style={styles.settingLeft}>
+                  <Ionicons name="language" size={20} color={Colors.primary.larkieBlue} />
+                  <Text style={styles.settingLabel}>Language</Text>
+                </View>
+                <TouchableOpacity 
+                  style={styles.frequencyButton}
+                  onPress={() => setShowLanguageModal(true)}
+                >
+                  <Text style={styles.frequencyButtonText}>
+                    {appSettings.language === 'en' ? 'English' : 
+                     appSettings.language === 'es' ? 'Español' : 'Français'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={16} color={Colors.neutral.gray} />
+                </TouchableOpacity>
+              </View>
+
               <TouchableOpacity style={styles.settingItem}>
                 <View style={styles.settingLeft}>
                   <Ionicons name="help-circle" size={20} color={Colors.primary.larkieBlue} />
@@ -480,6 +500,88 @@ export const ProfileScreen: React.FC<NavigationProps> = ({ navigation }) => {
                 </View>
               )}
             </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Language Selection Modal */}
+      <Modal visible={showLanguageModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.languageModal}>
+            <View style={styles.languageHeader}>
+              <Text style={styles.languageTitle}>Select Language</Text>
+              <TouchableOpacity
+                style={styles.modalCloseButton}
+                onPress={() => setShowLanguageModal(false)}
+              >
+                <Ionicons name="close" size={24} color={Colors.neutral.gray} />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.languageOptions}>
+              <TouchableOpacity
+                style={[
+                  styles.languageOption,
+                  appSettings.language === 'en' ? styles.languageOptionActive : {}
+                ]}
+                onPress={() => {
+                  updateSetting('language', 'en');
+                  setShowLanguageModal(false);
+                }}
+              >
+                <Text style={[
+                  styles.languageOptionText,
+                  appSettings.language === 'en' ? styles.languageOptionTextActive : {}
+                ]}>
+                  🇺🇸 English
+                </Text>
+                {appSettings.language === 'en' && (
+                  <Ionicons name="checkmark" size={20} color={Colors.primary.larkieBlue} />
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.languageOption,
+                  appSettings.language === 'es' ? styles.languageOptionActive : {}
+                ]}
+                onPress={() => {
+                  updateSetting('language', 'es');
+                  setShowLanguageModal(false);
+                }}
+              >
+                <Text style={[
+                  styles.languageOptionText,
+                  appSettings.language === 'es' ? styles.languageOptionTextActive : {}
+                ]}>
+                  🇪🇸 Español
+                </Text>
+                {appSettings.language === 'es' && (
+                  <Ionicons name="checkmark" size={20} color={Colors.primary.larkieBlue} />
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.languageOption,
+                  appSettings.language === 'fr' ? styles.languageOptionActive : {}
+                ]}
+                onPress={() => {
+                  updateSetting('language', 'fr');
+                  setShowLanguageModal(false);
+                }}
+              >
+                <Text style={[
+                  styles.languageOptionText,
+                  appSettings.language === 'fr' ? styles.languageOptionTextActive : {}
+                ]}>
+                  🇫🇷 Français
+                </Text>
+                {appSettings.language === 'fr' && (
+                  <Ionicons name="checkmark" size={20} color={Colors.primary.larkieBlue} />
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -882,5 +984,53 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: Colors.primary.larkieBlue,
     borderRadius: 4,
+  },
+  languageModal: {
+    backgroundColor: Colors.neutral.white,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 20,
+  },
+  languageHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.neutral.lightGray,
+  },
+  languageTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: Colors.primary.deepNavy,
+  },
+  languageOptions: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+  },
+  languageOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 15,
+    paddingHorizontal: 15,
+    marginVertical: 5,
+    borderRadius: 10,
+    backgroundColor: Colors.neutral.lightGray,
+  },
+  languageOptionActive: {
+    backgroundColor: Colors.primary.larkieBlue + '20',
+    borderWidth: 2,
+    borderColor: Colors.primary.larkieBlue,
+  },
+  languageOptionText: {
+    fontSize: 16,
+    color: Colors.primary.deepNavy,
+    fontWeight: '500',
+  },
+  languageOptionTextActive: {
+    color: Colors.primary.larkieBlue,
+    fontWeight: '600',
   },
 });

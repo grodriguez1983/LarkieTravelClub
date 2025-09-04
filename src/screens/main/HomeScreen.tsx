@@ -9,6 +9,7 @@ import {
   RefreshControl,
   Animated,
   Dimensions,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -68,7 +69,7 @@ export const HomeScreen: React.FC<NavigationProps> = ({ navigation }) => {
       // Siempre usar datos mock para garantizar funcionalidad
       setUser(mockUser);
       setRecentActivity(mockPointHistory.slice(0, 5));
-      
+
       // Load notification count
       const unreadCount = getUnreadNotificationCount();
       setNotificationCount(unreadCount);
@@ -219,9 +220,9 @@ export const HomeScreen: React.FC<NavigationProps> = ({ navigation }) => {
                   {user.pointsBalance.toLocaleString()}
                 </Text>
               </View>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.notificationButton}
-                onPress={() => navigation.navigate('Notifications')}
+                onPress={() => navigation.navigate("Notifications")}
               >
                 <Ionicons
                   name="notifications"
@@ -330,9 +331,7 @@ export const HomeScreen: React.FC<NavigationProps> = ({ navigation }) => {
                   color={Colors.primary.larkieBlue}
                 />
                 <Text style={styles.actionButtonText}>Pre-Check-In</Text>
-                <Text style={styles.actionButtonSubtext}>
-                  Skip the queue
-                </Text>
+                <Text style={styles.actionButtonSubtext}>Skip the queue</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -463,6 +462,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.neutral.lightGray,
+    marginBottom: Platform.OS === "android" ? 0 : -34,
   },
   scrollView: {
     flex: 1,
